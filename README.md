@@ -17,6 +17,8 @@
 - **Queue jobs** — notifications, file processing, activity logging
 - **Subscription architecture** — Free / Pro / Enterprise plans
 - **Premium dark-mode UI** — GSAP animations, Tailwind CSS
+- **Modern chat extras** — message forwarding, link previews, voice messages, custom emoji & stickers, GIF picker (Giphy), scheduled messages, built-in slash commands (`/invite` `/mute` `/remind` `/giphy`), Web Push notifications
+- **Calls** — 1-on-1 and group (mesh P2P, up to 6) audio/video calls with screen sharing and client-side recording (with in-call consent notices)
 
 ---
 
@@ -57,6 +59,41 @@ npm run dev                    # hot reload (dev)
 ```
 
 See **[INSTALLATION.md](INSTALLATION.md)** for the complete Windows 11 + XAMPP guide.
+
+### Optional integrations
+
+| Feature | `.env` | Notes |
+|---|---|---|
+| GIF picker | `GIPHY_API_KEY` | Hidden until a key is set |
+| Web Push | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | `php artisan webpush:vapid`; needs HTTPS (or `localhost`) |
+| Calls behind NAT | `TURN_URLS` + `TURN_SECRET` | See below |
+
+**TURN relay for calls.** Calls use STUN by default, which fails for peers behind
+symmetric NAT (common on mobile and corporate networks) — and in a group call that
+shows up as "some people can't see each other". Point the app at a
+[coturn](https://github.com/coturn/coturn) server and it will mint short-lived,
+per-user credentials for every call (`GET /calls/ice-servers`):
+
+```ini
+# .env
+TURN_URLS="turn:turn.example.com:3478?transport=udp,turns:turn.example.com:5349"
+TURN_SECRET=change-me            # same value as coturn's static-auth-secret
+TURN_CREDENTIAL_TTL=3600
+```
+
+```ini
+# /etc/turnserver.conf (coturn)
+listening-port=3478
+tls-listening-port=5349
+realm=turn.example.com
+use-auth-secret
+static-auth-secret=change-me
+cert=/etc/letsencrypt/live/turn.example.com/fullchain.pem
+pkey=/etc/letsencrypt/live/turn.example.com/privkey.pem
+```
+
+Providers that only hand out a fixed username/password work too: set
+`TURN_USERNAME` / `TURN_CREDENTIAL` instead of `TURN_SECRET`.
 
 ---
 

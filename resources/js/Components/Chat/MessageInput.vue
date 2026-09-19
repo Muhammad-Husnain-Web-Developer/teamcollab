@@ -271,6 +271,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
+import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import Avatar from '../Common/Avatar.vue';
 import VoiceRecorderButton from './VoiceRecorderButton.vue';
@@ -279,6 +280,7 @@ import GifPicker from './GifPicker.vue';
 import ScheduleSendPopover from './ScheduleSendPopover.vue';
 import { extensionForMimeType } from '../../Composables/useAudioRecorder';
 import { matchSlashCommands, isKnownSlashCommand } from '../../Utils/slashCommands';
+import { filterMentionCandidates } from '../../Utils/mentions';
 import { useAuthStore } from '../../Stores/useAuthStore';
 import { useMessageStore } from '../../Stores/useMessageStore';
 import { useUIStore } from '../../Stores/useUIStore';
@@ -294,6 +296,7 @@ const props = defineProps({
 
 const emit = defineEmits(['message-sent']);
 
+const page = usePage();
 const authStore = useAuthStore();
 const messageStore = useMessageStore();
 const uiStore = useUIStore();
@@ -414,7 +417,7 @@ async function handleInput() {
   if (mentionMatch) {
     mentionQuery.value = mentionMatch[1];
     slashResults.value = [];
-    await searchMentions(mentionQuery.value);
+    searchMentions(mentionQuery.value);
   } else if (slashMatch) {
     mentionResults.value = [];
     slashResults.value = matchSlashCommands(slashMatch[1]);
@@ -432,16 +435,11 @@ function selectSlashCommand(cmd) {
   nextTick(() => textareaEl.value?.focus());
 }
 
-async function searchMentions(query) {
-  try {
-    const { data } = await axios.get('/api/users/search', {
-      params: { q: query, workspace_id: props.channel.workspace_id },
-    });
-    mentionResults.value = (data.data ?? data).slice(0, 6);
-    mentionIndex.value = 0;
-  } catch {
-    mentionResults.value = [];
-  }
+// Filters the member list Inertia shares on every page — the same source
+// NewDmModal / ForwardMessageModal use — instead of a search endpoint.
+function searchMentions(query) {
+  mentionResults.value = filterMentionCandidates(page.props.workspaceMembers, query, 6);
+  mentionIndex.value = 0;
 }
 
 function selectMention(user) {

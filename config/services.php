@@ -39,4 +39,22 @@ return [
         'key' => env('GIPHY_API_KEY'),
     ],
 
+    // WebRTC ICE. STUN alone only works when both peers are behind
+    // friendly NATs; a TURN relay is what makes calls connect reliably.
+    'stun' => [
+        'urls' => env('STUN_URLS', 'stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302'),
+    ],
+
+    'turn' => [
+        // Comma-separated, e.g. "turn:turn.example.com:3478?transport=udp,turns:turn.example.com:5349"
+        'urls'       => env('TURN_URLS'),
+        // coturn `static-auth-secret`: the server mints short-lived per-user
+        // credentials, so nothing long-lived ever reaches the browser.
+        'secret'     => env('TURN_SECRET'),
+        'ttl'        => (int) env('TURN_CREDENTIAL_TTL', 3600),
+        // Fallback for providers that only offer a fixed username/password.
+        'username'   => env('TURN_USERNAME'),
+        'credential' => env('TURN_CREDENTIAL'),
+    ],
+
 ];

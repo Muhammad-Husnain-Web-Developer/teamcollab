@@ -6,6 +6,7 @@ use App\Events\WebRtcSignal;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Call;
 use App\Services\CallService;
+use App\Services\IceServerService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,19 @@ class CallController extends Controller
 {
     public function __construct(private readonly CallService $calls)
     {
+    }
+
+    /**
+     * Fetched by the client right before it opens peer connections; TURN
+     * credentials (when configured) are minted per user and expire, so this
+     * is never cached beyond `ttl`.
+     */
+    public function iceServers(IceServerService $ice): JsonResponse
+    {
+        return response()->json([
+            'iceServers' => $ice->forUser(auth()->user()),
+            'ttl'        => $ice->ttl(),
+        ]);
     }
 
     public function initiate(Request $request): JsonResponse

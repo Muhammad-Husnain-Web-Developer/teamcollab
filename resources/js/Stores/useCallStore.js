@@ -5,10 +5,10 @@ import { startIncomingRing, startOutgoingRingback, stopRing } from '../Utils/sou
 import { useUIStore } from './useUIStore';
 import { useAuthStore } from './useAuthStore';
 
-// STUN only — fine for most pairs, but at group scale "some pairs can't
-// connect behind symmetric NAT" becomes a common partial-mesh failure. A
-// TURN server (coturn / Twilio NTS) is the follow-up that fixes that.
-const ICE_SERVERS = [
+// Used only if `/calls/ice-servers` cannot be reached. The server-provided
+// list adds a TURN relay (with short-lived, per-user credentials) when one
+// is configured — without a relay, pairs behind symmetric NAT never connect.
+const FALLBACK_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
 ];
@@ -54,6 +54,8 @@ export const useCallStore = defineStore('call', () => {
   const peers = new Map();
 
   let cameraTrack   = null;
+  let iceServers    = FALLBACK_ICE_SERVERS;
+  let iceExpiresAt  = 0; // ms epoch; minted TURN credentials expire
   let durationTimer = null;
   let ringTimer     = null;
   let connectTimer  = null;
@@ -109,7 +111,7 @@ export const useCallStore = defineStore('call', () => {
     // The caller must already have media when the first joiner's offer
     // arrives, so ask for it now rather than on accept.
     try {
-      await getLocalMedia();
+      await Promise.all([getLocalMedia(), loadIceServers()]);
     } catch (e) {
       uiStore.toastError(mediaErrorMessage(e));
       cleanup();
@@ -180,7 +182,7 @@ export const useCallStore = defineStore('call', () => {
     startConnectTimeout();
 
     try {
-      await getLocalMedia();
+      await Promise.all([getLocalMedia(), loadIceServers()]);
     } catch (e) {
       callError.value = 'Camera/microphone access denied.';
       uiStore.toastError(mediaErrorMessage(e));
@@ -371,7 +373,7 @@ export const useCallStore = defineStore('call', () => {
     const existing = peers.get(userId);
     if (existing) return existing;
 
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers });
     const peer = { pc, pendingIce: [] };
     peers.set(userId, peer);
 
@@ -540,6 +542,26 @@ export const useCallStore = defineStore('call', () => {
   }
 
   // ── Internals ────────────────────────────────────────────────────────
+  /**
+   * Refresh the ICE server list (STUN + optional TURN) before peers are
+   * created. Never throws — a failure just keeps the STUN-only fallback,
+   * so a call can still be attempted without the relay.
+   */
+  async function loadIceServers() {
+    if (Date.now() < iceExpiresAt) return;
+    try {
+      const { data } = await axios.get('/calls/ice-servers');
+      if (Array.isArray(data?.iceServers) && data.iceServers.length > 0) {
+        iceServers = data.iceServers;
+        // Re-fetch a minute before the minted credentials would expire.
+        const ttlSec = Math.max(60, Number(data.ttl) || 3600);
+        iceExpiresAt = Date.now() + (ttlSec - 60) * 1000;
+      }
+    } catch {
+      // Keep whatever we had (fallback or a previous fetch).
+    }
+  }
+
   function myId() {
     return useAuthStore().user?.id ?? null;
   }

@@ -278,7 +278,10 @@ function subscribe() {
     })
     .listen('.message.updated', e => { messageStore.updateMessage(e.message); })
     .listen('.message.preview.ready', e => { messageStore.updateMessage(e.message); })
-    .listen('.message.deleted', e => { messageStore.removeMessage(e.messageId); })
+    .listen('.message.deleted', e => {
+      messageStore.removeMessage(e.messageId);
+      if (e.parent_id) messageStore.bumpReplyCount(e.parent_id, -1);
+    })
     .listen('.message.reacted', e => {
       // Own reactions are already applied from the HTTP response
       if (e.user_id === authStore.user?.id) return;

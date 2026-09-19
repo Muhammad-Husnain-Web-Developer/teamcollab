@@ -235,6 +235,7 @@ function setupEcho() {
 
   echoChannel.listen('.message.deleted', (e) => {
     messageStore.removeMessage(e.messageId);
+    if (e.parent_id) messageStore.bumpReplyCount(e.parent_id, -1);
   });
 
   echoChannel.listen('.message.reacted', (e) => {

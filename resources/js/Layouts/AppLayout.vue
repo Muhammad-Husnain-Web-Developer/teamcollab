@@ -51,6 +51,13 @@
       @close="uiStore.closeModal()"
     />
 
+    <!-- Edit message (opened from a message's hover-action bar, own messages only) -->
+    <EditMessageModal
+      :show="uiStore.activeModal === 'editMessage'"
+      :message="uiStore.activeModalProps.message"
+      @close="uiStore.closeModal()"
+    />
+
     <!-- Forward message (opened from a message's hover-action bar) -->
     <ForwardMessageModal
       :show="uiStore.activeModal === 'forwardMessage'"
@@ -88,6 +95,7 @@ import ToastContainer from '../Components/Common/ToastContainer.vue';
 import IncomingCallToast from '../Components/Call/IncomingCallToast.vue';
 import CallScreen from '../Components/Call/CallScreen.vue';
 import NewDmModal from '../Components/Chat/NewDmModal.vue';
+import EditMessageModal from '../Components/Chat/EditMessageModal.vue';
 import ForwardMessageModal from '../Components/Chat/ForwardMessageModal.vue';
 import GroupCallInviteModal from '../Components/Call/GroupCallInviteModal.vue';
 

@@ -237,6 +237,7 @@ Route::middleware([
     // -------------------------------------------------------------------------
     // WebRTC Calls (mesh — 1-on-1 is the two-participant case)
     // -------------------------------------------------------------------------
+    Route::get('/calls/ice-servers', [CallController::class, 'iceServers'])->name('calls.ice-servers');
     Route::post('/calls', [CallController::class, 'initiate'])->name('calls.initiate');
     Route::post('/calls/{call}/accept', [CallController::class, 'accept'])->name('calls.accept');
     Route::post('/calls/{call}/reject', [CallController::class, 'reject'])->name('calls.reject');

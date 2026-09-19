@@ -5,7 +5,9 @@ namespace App\Services;
 use App\Events\DmMessageSent;
 use App\Events\MessageReacted;
 use App\Events\MessageRead as MessageReadEvent;
+use App\Events\MessageDeleted;
 use App\Events\MessageSent;
+use App\Events\MessageUpdated;
 use App\Jobs\FetchLinkPreviewJob;
 use App\Models\Tenant\Channel;
 use App\Models\Tenant\Conversation;
@@ -223,7 +225,16 @@ class MessageService
             'edited_at' => now(),
         ]);
 
-        return $message->fresh();
+        $updated = $message->fresh();
+
+        try {
+            event(new MessageUpdated($updated, tenant('id')));
+        } catch (\Throwable) {
+            // Broadcast failure is non-fatal — the edit is saved and the
+            // editor's own UI is patched from the HTTP response.
+        }
+
+        return $updated;
     }
 
     /**
@@ -240,6 +251,18 @@ class MessageService
 
             $message->delete();
         });
+
+        try {
+            event(new MessageDeleted(
+                $message->id,
+                $message->parent_id,
+                $message->channel_id,
+                $message->conversation_id,
+                tenant('id'),
+            ));
+        } catch (\Throwable) {
+            // Non-fatal, as above.
+        }
     }
 
     /**
