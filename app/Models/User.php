@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -38,6 +39,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
+
+    /**
+     * Send the verification mail through the queue (see QueuedVerifyEmail)
+     * instead of inline during the registration request.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new QueuedVerifyEmail());
+    }
 
     /** avatar_url must reach the frontend on every serialization (messages, members, presence). */
     protected $appends = ['avatar_url'];

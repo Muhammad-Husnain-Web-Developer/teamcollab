@@ -81,7 +81,10 @@ if errorlevel 1 (
 :: Already running? (a previous start-dev without stop-dev)
 :: ------------------------------------------------------------------
 netstat -an | findstr /R /C:":%APP_PORT% .*LISTENING" >nul && (
-    echo [WARN] Port %APP_PORT% is already in use. Run stop-dev.bat first if TeamCollab is already running.
+    echo [ -- ] TeamCollab already seems to be running on http://localhost:%APP_PORT%
+    echo        Use that, or run stop-dev.bat first and then start-dev.bat again.
+    start "" "http://localhost:%APP_PORT%"
+    goto :fail
 )
 
 :: A stale Vite hot-file makes the app load assets from a dead dev server.
@@ -138,6 +141,5 @@ exit /b 0
 
 :fail
 echo.
-echo  Launch aborted.
 pause
 exit /b 1
