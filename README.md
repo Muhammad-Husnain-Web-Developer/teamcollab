@@ -54,9 +54,14 @@ Then run 4 terminals:
 ```bash
 php artisan serve              # :8000
 php artisan reverb:start       # :8080
-php artisan queue:work redis   # background jobs
+php artisan queue:work         # background jobs (queue driver from .env)
 npm run dev                    # hot reload (dev)
 ```
+
+**Windows shortcut:** double-click `start-dev.bat` — it checks MySQL (XAMPP),
+`vendor/`, `node_modules/`, reads the ports from `.env`, opens the four
+servers in their own windows and launches the browser. `stop-dev.bat` shuts
+them all down again.
 
 See **[INSTALLATION.md](INSTALLATION.md)** for the complete Windows 11 + XAMPP guide.
 
