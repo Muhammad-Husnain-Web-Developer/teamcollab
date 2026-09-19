@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #323237; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3a3a40; }
+    ::selection { background: rgba(92,124,250,0.3); color: #fff; }
+    :focus-visible { outline: 2px solid rgba(92,124,250,0.6); outline-offset: 2px; }
+}
+
+/* ==========================================================================
+   Atmosphere — the aurora mesh + grain sit behind every shell (auth, app,
+   workspace) so the "refined depth" language reads as one system, not a
+   one-off login-page effect.
+   ========================================================================== */
+@layer components {
+    .app-atmosphere {
+        @apply pointer-events-none fixed inset-0 overflow-hidden;
+        z-index: 0;
+    }
+    .app-atmosphere::before {
+        content: '';
+        @apply absolute inset-0 opacity-[0.035] mix-blend-overlay bg-grain;
+    }
+    .aurora-blob {
+        @apply absolute rounded-full opacity-20;
+        filter: blur(90px);
+        animation: aurora 25s ease-in-out infinite alternate;
+    }
+
+    /* ---- Glass surface tiers ---- */
+    .glass-card {
+        @apply relative bg-dark-750/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl shadow-glass;
+    }
+    .glass-panel {
+        @apply relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.07] rounded-xl;
+    }
+    .glass-elevated {
+        @apply relative bg-dark-750/80 backdrop-blur-2xl border border-white/[0.09] rounded-2xl shadow-glass-lg;
+    }
+    .glass-hairline {
+        @apply border-t border-white/[0.06];
+    }
+
+    /* ---- Typography ---- */
+    .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-dark-50/70; }
+    .gradient-text { @apply bg-gradient-to-r from-brand-400 via-brand-300 to-aurora-teal bg-clip-text text-transparent; }
+    .section-title { @apply text-xs font-semibold uppercase tracking-wider text-dark-50/60; }
+
+    /* ---- Buttons ---- */
+    .btn { @apply inline-flex items-center justify-center gap-2 font-semibold text-sm rounded-xl px-4 py-2.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed select-none; }
+    .btn-primary { @apply btn text-white bg-gradient-to-b from-brand-400 to-brand-600 hover:from-brand-400 hover:to-brand-500 shadow-lg shadow-brand-500/25 hover:shadow-glow-brand active:scale-[0.98]; }
+    .btn-secondary { @apply btn text-dark-50 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] hover:border-white/[0.14]; }
+    .btn-ghost { @apply btn text-dark-100 hover:text-white hover:bg-white/[0.06]; }
+    .btn-danger { @apply btn text-white bg-gradient-to-b from-red-400 to-red-500 hover:from-red-400 hover:to-red-600 shadow-lg shadow-red-500/20; }
+    .btn-sm { @apply !px-3 !py-1.5 !text-xs !rounded-lg; }
+    .icon-btn { @apply w-8 h-8 flex items-center justify-center rounded-lg text-dark-100 hover:text-white hover:bg-white/[0.08] transition-all duration-150 cursor-pointer; }
+
+    /* ---- Inputs ---- */
+    .input-field { @apply w-full bg-white/[0.04] border border-white/[0.09] rounded-xl px-3.5 py-2.5 text-white placeholder-dark-200 text-sm focus:outline-none focus:border-brand-500/70 focus:ring-2 focus:ring-brand-500/25 focus:bg-white/[0.06] transition-all duration-200; }
+    .input-base { @apply input-field; }
+
+    /* ---- Cards ---- */
+    .surface-card { @apply glass-card p-5 transition-all duration-200; }
+    .surface-card-hover { @apply surface-card hover:border-brand-500/25 hover:shadow-card-hover hover:-translate-y-0.5; }
+
+    /* ---- Sidebar ---- */
+    .sidebar-item { @apply flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-dark-100 hover:bg-white/[0.06] hover:text-white cursor-pointer transition-all duration-150 select-none; }
+    .sidebar-item.active { @apply bg-gradient-to-r from-brand-500/25 to-brand-500/5 text-white relative; }
+    .sidebar-item.active::before { content: ''; @apply absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-full bg-brand-400; }
+
+    /* ---- Misc UI atoms ---- */
+    .badge { @apply inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold; }
+    .status-dot { @apply w-2.5 h-2.5 rounded-full border-2 border-dark-800 flex-shrink-0; }
+    .status-dot.online  { @apply bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]; }
+    .status-dot.away    { @apply bg-amber-400; }
+    .status-dot.dnd     { @apply bg-red-400; }
+    .status-dot.offline { @apply bg-dark-400; }
+    .mention { @apply text-brand-400 bg-brand-500/10 rounded px-0.5 font-medium cursor-pointer hover:bg-brand-500/20 transition-colors; }
+    .skeleton { @apply relative overflow-hidden bg-white/[0.05] rounded; }
+    .skeleton::after { content:''; @apply absolute inset-0; background: linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent); animation: shimmer 1.5s infinite; }
+    .toolbar-btn { @apply w-7 h-7 flex items-center justify-center rounded-lg text-dark-200 hover:text-white hover:bg-white/[0.08] transition-all duration-150 cursor-pointer; }
+    .role-badge   { @apply text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-md; }
+    .role-owner   { @apply bg-gradient-to-r from-amber-500/20 to-amber-400/10 text-amber-400 ring-1 ring-amber-500/20; }
+    .role-admin   { @apply bg-gradient-to-r from-red-500/20 to-red-400/10 text-red-400 ring-1 ring-red-500/20; }
+    .role-member  { @apply bg-brand-500/15 text-brand-400 ring-1 ring-brand-500/20; }
+    .role-guest   { @apply bg-white/[0.06] text-dark-50 ring-1 ring-white/10; }
+    .date-divider { @apply flex items-center gap-3 my-4; }
+    .date-divider::before, .date-divider::after { content:''; @apply flex-1 h-px bg-white/[0.07]; }
+    .empty-state { @apply flex flex-col items-center justify-center text-center py-16 px-6; }
+    .empty-state-icon { @apply w-14 h-14 rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-dark-50 mb-4; }
+}
+
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+@keyframes gradient { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes typing-bounce { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-4px);opacity:1} }
+
+.typing-dot { @apply w-1.5 h-1.5 bg-dark-200 rounded-full; animation: typing-bounce 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay:.2s }
+.typing-dot:nth-child(3) { animation-delay:.4s }
